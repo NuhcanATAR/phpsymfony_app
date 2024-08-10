@@ -1,0 +1,9 @@
+{% if date(viewList.created) < date('-1year') %}
+    <h3>{{ viewList.title }}</h3>
+    <i>1 Yıldan Önceki Kayıt</i>
+    <p>{{ viewList.created|date('d/m/Y') }}</p>
+{% else %}
+    <h3>{{ viewList.title }}</h3>
+    <p>{{ viewList.created|date('d/m/Y') }}</p>
+{% endif %}  
+<br>

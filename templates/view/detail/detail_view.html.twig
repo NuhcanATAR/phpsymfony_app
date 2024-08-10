@@ -1,7 +1,4 @@
 {% extends 'base.html.twig' %}
-
-
 {% block body %}
-
-
+    {{ include('view/widget/message_card.html.twig', {viewList: viewList},) }}
 {% endblock %}

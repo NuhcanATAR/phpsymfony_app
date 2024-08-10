@@ -4,9 +4,8 @@
 <div>
 {% if viewList|length > 0 %}
     {% for key,viewList in viewList|slice(0, index) %}
-    <h3>{{ viewList.title }}</h3>
-    <p>{{ viewList.created }}</p>
-    <br>
+    {{ include('view/widget/message_card.html.twig', { viewList: viewList }) }}
+    <a href="{{ path('first_direct', { id: key }) }}">Detay Göster</a>
     {% endfor %}
 {% else %}
     <h3>No view to display.</h3>
@@ -15,4 +14,4 @@
 {% endblock %}
 
 
-{% block title %}I have changed title {% endblock %}
+{% block title %}My Todo {% endblock %}

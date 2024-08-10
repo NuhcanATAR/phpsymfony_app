@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div>
+{% if viewList|length > 0 %}
+    {% for key,viewList in viewList|slice(0, index) %}
+    <h3>{{ viewList.title }}</h3>
+    <p>{{ viewList.created }}</p>
+    <br>
+    {% endfor %}
+{% else %}
+    <h3>No view to display.</h3>
+{% endif %}
+</div>
+{% endblock %}
+
+
+{% block title %}I have changed title {% endblock %}

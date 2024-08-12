@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Post - {{ post.title }}{% endblock %}
+
+{% block body %}
+    {% if date(post.created) < date('-1year') %}
+    <h3>{{ post.title }}</h3>
+    <i>1 Yıldan Önceki Kayıt</i> 
+{% else %}
+    <h3>{{ post.title }}</h3> 
+{% endif %}  
+<br>
+{% endblock %}

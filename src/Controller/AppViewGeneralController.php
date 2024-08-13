@@ -2,6 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
+use App\Entity\UserProfile;
+use App\Repository\UserProfileRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,21 +21,22 @@ class AppViewGeneralController extends AbstractController
     ];
     
     #[Route('/{index<\d+>?3}', name: 'app_index')]
-    public function initializeApp(int $index = null): Response
+    public function initializeApp(UserProfileRepository $profiles): Response
     {
-        // Eğer index sağlanmamışsa veya index geçersizse, tüm listeyi göster
-        if ($index === null || $index < 0) {
-            $index = count($this->viewList); // veya bir varsayılan değer
-        } else {
-            $viewListLength = count($this->viewList);
-            $index = min($index, $viewListLength);
-        }
+        // $user = new User();
+        // $user->setEmail('email@email.com');
+        // $user->setPassword('12345678');
 
-        $viewListSlice = array_slice($this->viewList, 0, $index);
+        // $profile = new UserProfile();
+        // $profile->setUser($user);
+        // $profiles->add($profile, true);
+
+        // $profile = $profiles->find(1);
+        // $profiles->remove($profile, true);
 
         return $this->render('view/main_page.html.twig', [
-            'viewList' => $viewListSlice,
-            'index' => $index,
+            'viewList' => $this->viewList,
+            'index' => 3,
         ]);
     }
 

@@ -1,8 +1,11 @@
 <?php
 namespace App\Controller;
 
+use App\Entity\Comment;
 use App\Entity\MicroPost;
+use App\Form\CommentType;
 use App\Form\MicroPostType;
+use App\Repository\CommentRepository;
 use App\Repository\MicroPostRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -12,7 +15,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class MicroPostController extends AbstractController
 {
@@ -20,11 +23,12 @@ class MicroPostController extends AbstractController
     public function index(EntityManagerInterface $entityManager, MicroPostRepository $posts): Response 
     {
         return $this->render('micro_post/index.html.twig', [
-            'posts' => $posts->findAll(),
+            'posts' => $posts->findAllWithComments(),
         ]);
     }
 
     #[Route('/micro-post/{post}', name: 'app_micro_post_show')]
+    #[IsGranted(MicroPost::VIEW, 'post')]
     public function showOne(MicroPost $post): Response 
     {
         return $this->render('micro_post/show.html.twig', [
@@ -33,7 +37,8 @@ class MicroPostController extends AbstractController
     }
 
     #[Route('micro-post/add', name: 'app_micro_post_add', priority: 2)]
-    public function add(Request $request, EntityManagerInterface $entityManager) : Response{
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function add(Request $request, EntityManagerInterface $entityManager) : Response{  
         $microPost = new MicroPost();
         $form = $this->createForm(MicroPostType::class, $microPost);
 
@@ -41,7 +46,8 @@ class MicroPostController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try{
-                $microPost->setCreated(new DateTime());
+               
+                $microPost->setAuthor($this->getUser());
                 $entityManager->persist($microPost);
                 $entityManager->flush(); 
                 $this->addFlash('notice', 'Your micre post have been added');
@@ -59,8 +65,13 @@ class MicroPostController extends AbstractController
     }
 
 
-    #[Route('micro-post/{post}/edit', name: 'app_micro_post_edit', priority: 2)]
-    public function edit(Request $request, EntityManagerInterface $entityManager, MicroPost $post,) : Response{
+    #[Route('micro-post/{post}/edit', name: 'app_micro_post_edit', priority: 2)] 
+    #[IsGranted(MicroPost::EDIT, 'post')]
+    public function edit(
+        MicroPost $post,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): Response {
 
         $form = $this->createForm(MicroPostType::class, $post);
 
@@ -85,6 +96,50 @@ class MicroPostController extends AbstractController
 
         return $this->render('micro_post/edit.html.twig',[
             'form' => $form->createView(),
+            'post' => $post
         ]);
     }
+
+
+
+    #[Route('/micro-post/{post}/comment', name: 'app_micro_post_comment')]
+    #[IsGranted('ROLE_COMMENTER')]
+    public function addComment(
+        MicroPost $post,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $form = $this->createForm(CommentType::class, new Comment());
+        $form->handleRequest($request);
+    
+        if ($form->isSubmitted() && $form->isValid()) {
+            $comment = $form->getData();
+            $comment->setPost($post);
+            $comment->setAuthor($this->getUser());
+            $comment->setCreated(new DateTime()); // created alanını şu anki tarih ve zamanla set et
+    
+            // Kaydetmek için EntityManager'ı kullan
+            $entityManager->persist($comment); // Comment nesnesini kaydet
+            $entityManager->flush(); // Veritabanına yaz
+    
+            // Flash mesajı ekle
+            $this->addFlash('success', 'Your comment has been added.');
+    
+            // Yönlendir
+            return $this->redirectToRoute(
+                'app_micro_post_show',
+                ['post' => $post->getId()]
+            );
+        }
+    
+        return $this->render(
+            'micro_post/comment.html.twig',
+            [
+                'form' => $form->createView(), // Formu render et
+                'post' => $post
+            ]
+        );
+    }
+    
+    
 }

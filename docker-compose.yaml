@@ -16,6 +16,11 @@ services:
       - 125:8080
     depends_on:
       - mysql
+  mailer:
+    image: schickling/mailcatcher
+    ports:
+      - 1080:1080
+      - 1025:1025
 
 ###> symfony/mercure-bundle ###
   mercure:

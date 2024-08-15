@@ -2,10 +2,15 @@
 
 namespace App\Controller;
 
+use App\Entity\Comment;
+use App\Entity\MicroPost;
 use App\Entity\User;
 use App\Entity\UserProfile;
+use App\Repository\MicroPostRepository;
 use App\Repository\UserProfileRepository;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -21,24 +26,33 @@ class AppViewGeneralController extends AbstractController
     ];
     
     #[Route('/{index<\d+>?3}', name: 'app_index')]
-    public function initializeApp(UserProfileRepository $profiles): Response
+    public function initializeApp(MicroPostRepository $postRepository, EntityManagerInterface $entityManager): Response
     {
-        // $user = new User();
-        // $user->setEmail('email@email.com');
-        // $user->setPassword('12345678');
-
-        // $profile = new UserProfile();
-        // $profile->setUser($user);
-        // $profiles->add($profile, true);
-
-        // $profile = $profiles->find(1);
-        // $profiles->remove($profile, true);
-
+        try{
+            $post = new MicroPost();
+            $post->setTitle('Hello');
+            $post->setText('This is the first post');
+            $post->setCreated(new DateTime());
+        
+            $comment = new Comment();
+            $comment->setText('This is the first comment');
+            $post->addComment($comment);
+        
+            // Veritabanına kaydet
+            $entityManager->persist($post);
+            $entityManager->persist($comment);
+            $entityManager->flush(); // Veritabanına yazma işlemi
+        }catch (Exception $e){
+            // Hata mesajı ile birlikte render ediliyor
+            $this->addFlash('error', 'An error occurred while saving the post: '. $e->getMessage());
+        }
+    
         return $this->render('view/main_page.html.twig', [
             'viewList' => $this->viewList,
             'index' => 3,
         ]);
     }
+    
 
     #[Route('/viewList/{id<\d+>}', name: 'first_direct')]
     public function showFirstDirect(int $id): Response
